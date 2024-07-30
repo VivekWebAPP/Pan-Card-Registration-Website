@@ -1,6 +1,9 @@
 import mongoose from "mongoose";
+import dotenv from 'dotenv';
 
-const ConnectionString = 'mongodb+srv://vivekphadake17:Vivek%402019@cluster0.4rhmcxh.mongodb.net/Backend';
+dotenv.config();
+
+const ConnectionString = process.env.CONNECTION_STRING;
 
 const ConnectToDB = async () => {
     try {
