@@ -2,6 +2,7 @@ import express from "express";
 import User from '../model/UserModel.js';
 import { body, validationResult } from 'express-validator';
 import jwt from 'jsonwebtoken';
+import bcrypt from 'bcrypt';
 import { findToken, authorize } from '../middleware/findToken.js';
 
 const router = express.Router();
@@ -22,7 +23,7 @@ router.post('/createNewUser', [
         if (!errors.isEmpty()) {
             return res.status(400).send({ errors: errors.array() });
         }
-        const { pan, name, email, phone, address, pincode, state, city } = req.body;
+        const { pan, name, email, phone, address, pincode, state, city,role } = req.body;
 
         let user = await User.findOne({ pan });
 
@@ -39,6 +40,7 @@ router.post('/createNewUser', [
             pincode,
             state,
             city,
+            role:role==='admin'?'admin':'user',
         });
 
         const secret = 'VivekIsACollageStudent';
@@ -46,6 +48,7 @@ router.post('/createNewUser', [
         const data = {
             userId: {
                 id: user.id,
+                role:user.role
             },
         };
 
@@ -58,27 +61,49 @@ router.post('/createNewUser', [
     }
 });
 
+router.post('/verifyTheUser', [
+    body('pan').isLength({ max: 10 }).isAlphanumeric().withMessage('Enter a valid pan card number'),
+], async (req,res) => {
+    try {
+        const error = validationResult(req);
+        if (!error.isEmpty()) {
+            return res.status(400).send({ error: 'Internal Server Error' });
+        }
+        const { pan } = req.body;
+        const user = await User.findOne({ pan: pan });
+        
+        if (!user) {
+            return res.status(400).send({ error: 'User does not exist' });
+        }
+
+        res.status(200).send({ user });
+
+    } catch (error) {
+        return res.status(500).send({ error: 'Internal Server Error' });
+    }
+})
+
 // Route to view all users (admin only)
 router.get('/users', findToken, async (req, res) => {
     try {
         const users = await User.find({});
-        res.status(200).send(users);
+        res.status(200).send({users});
     } catch (error) {
         return res.status(500).send({ error: 'Internal Server Error' });
     }
 });
 
 // Router to get the user details (individual user)
-router.get('/usersDetails',findToken,async(req,res)=>{
+router.get('/usersDetails', findToken, async (req, res) => {
     try {
         const userId = await req.user;
-        if(!userId){
-            return res.status(401).send({error:'Unauthorized'});
+        if (!userId) {
+            return res.status(401).send({ error: 'Unauthorized' });
         }
         const user = await User.findById(userId);
-        res.status(200).send(user);
+        res.status(200).send({user});
     } catch (error) {
-        return res.status(500).send({error:"Internal Server Error"});
+        return res.status(500).send({ error: "Internal Server Error" });
     }
 })
 
@@ -87,13 +112,28 @@ router.get('/users/:id', findToken, async (req, res) => {
     try {
         const userId = req.params.id;
         if (req.user.role === 'user' && req.user.toString() !== userId) {
-            return res.status(403).send({ message: 'Forbidden' });
+            const Isuser = await User.findById(userId);
+            if (!Isuser) {
+                return res.status(404).send({ message: 'User not found' });
+            }
+            const user = {
+                name:Isuser.name,
+                email:Isuser.email,
+                phone:Isuser.phone,
+                address:Isuser.address,
+                pincode:Isuser.pincode,
+                state:Isuser.state,
+                city:Isuser.city,
+            }
+            return res.status(200).send({user});
         }
+
         const user = await User.findById(userId);
         if (!user) {
             return res.status(404).send({ message: 'User not found' });
         }
-        res.status(200).send(user);
+        res.status(200).send({user});
+        
     } catch (error) {
         return res.status(500).send({ error: 'Internal Server Error' });
     }
@@ -103,14 +143,16 @@ router.get('/users/:id', findToken, async (req, res) => {
 router.put('/users/:id', findToken, async (req, res) => {
     try {
         const userId = req.params.id;
-        if (req.user.role === 'user' && req.user.toString() !== userId) {
+        if (req.userRole === 'user' && req.user.toString() !== userId) {
             return res.status(403).send({ message: 'Forbidden' });
         }
 
         const { pan, name, email, phone, address, pincode, state, city } = req.body;
         const updatedDetails = {};
+        const hashPanCardNumber = await bcrypt.hash(pan, 10);
 
-        if (pan) updatedDetails.pan = pan;
+
+        if (pan) updatedDetails.pan = hashPanCardNumber;
         if (name) updatedDetails.name = name;
         if (email) updatedDetails.email = email;
         if (phone) updatedDetails.phone = phone;
@@ -123,7 +165,7 @@ router.put('/users/:id', findToken, async (req, res) => {
         if (!user) {
             return res.status(404).send({ message: 'User not found' });
         }
-        res.status(200).send(user);
+        res.status(200).send({user});
     } catch (error) {
         return res.status(500).send({ error: 'Internal Server Error' });
     }

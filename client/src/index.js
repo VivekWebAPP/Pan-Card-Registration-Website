@@ -1,14 +1,22 @@
-import React from 'react';
+import React, { StrictMode } from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.css';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
+import { Provider } from 'react-redux';
+import store from './redux/store.js';
+import 'bootstrap/dist/css/bootstrap.min.css';
+import ContextProvider from './Context API/ContextProvider.js';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
-  <React.StrictMode>
-    <App />
-  </React.StrictMode>
+  <StrictMode>
+    <Provider store={store}>
+      <ContextProvider>
+        <App />
+      </ContextProvider>
+    </Provider>
+  </StrictMode>
 );
 
 // If you want to start measuring performance in your app, pass a function

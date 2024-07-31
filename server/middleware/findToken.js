@@ -12,6 +12,8 @@ const findToken = async (req,res,next) => {
             return res.status(401).send({ message: 'Access denied. Invalid token.' });
         }
         req.user = decoded.userId.id;
+        req.userRole = decoded.userId.role;
+        console.log(req.userRole);
         next();
     } catch (error) {
         console.log(error.message);
@@ -22,7 +24,7 @@ const findToken = async (req,res,next) => {
 // Authorization middleware
 const authorize = (roles) => {
     return (req, res, next) => {
-      if (!roles.includes(req.user.role)) {
+      if (!roles.includes(req.userRole)) {
         return res.status(403).json({ message: 'Forbidden' });
       }
       next();
