@@ -2,7 +2,6 @@ import express from "express";
 import User from '../model/UserModel.js';
 import { body, validationResult } from 'express-validator';
 import jwt from 'jsonwebtoken';
-import bcrypt from 'bcrypt';
 import { findToken, authorize } from '../middleware/findToken.js';
 
 const router = express.Router();
@@ -149,10 +148,8 @@ router.put('/users/:id', findToken, async (req, res) => {
 
         const { pan, name, email, phone, address, pincode, state, city } = req.body;
         const updatedDetails = {};
-        const hashPanCardNumber = await bcrypt.hash(pan, 10);
 
-
-        if (pan) updatedDetails.pan = hashPanCardNumber;
+        if (pan) updatedDetails.pan = pan;
         if (name) updatedDetails.name = name;
         if (email) updatedDetails.email = email;
         if (phone) updatedDetails.phone = phone;
