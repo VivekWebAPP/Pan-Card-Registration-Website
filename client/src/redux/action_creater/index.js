@@ -24,7 +24,7 @@ export const VerifyUsersPan = (pan) => {
             const response = await verifyUsersPan(pan);
             dispatch({
                 type: "USER_VERIFICATION_SUCCESSFULL",
-                payload: response.user,
+                payload: response,
             });
         } catch (error) {
             dispatch({

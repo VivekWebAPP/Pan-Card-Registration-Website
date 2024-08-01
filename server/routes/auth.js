@@ -22,7 +22,7 @@ router.post('/createNewUser', [
         if (!errors.isEmpty()) {
             return res.status(400).send({ errors: errors.array() });
         }
-        const { pan, name, email, phone, address, pincode, state, city,role } = req.body;
+        const { pan, name, email, phone, address, pincode, state, city, role } = req.body;
 
         let user = await User.findOne({ pan });
 
@@ -39,7 +39,7 @@ router.post('/createNewUser', [
             pincode,
             state,
             city,
-            role:role==='admin'?'admin':'user',
+            role: role === 'admin' ? 'admin' : 'user',
         });
 
         const secret = 'VivekIsACollageStudent';
@@ -47,7 +47,7 @@ router.post('/createNewUser', [
         const data = {
             userId: {
                 id: user.id,
-                role:user.role
+                role: user.role
             },
         };
 
@@ -62,7 +62,7 @@ router.post('/createNewUser', [
 
 router.post('/verifyTheUser', [
     body('pan').isLength({ max: 10 }).isAlphanumeric().withMessage('Enter a valid pan card number'),
-], async (req,res) => {
+], async (req, res) => {
     try {
         const error = validationResult(req);
         if (!error.isEmpty()) {
@@ -70,12 +70,23 @@ router.post('/verifyTheUser', [
         }
         const { pan } = req.body;
         const user = await User.findOne({ pan: pan });
-        
+
         if (!user) {
             return res.status(400).send({ error: 'User does not exist' });
         }
 
-        res.status(200).send({ user });
+        const secret = 'VivekIsACollageStudent';
+
+        const data = {
+            userId: {
+                id: user.id,
+                role: user.role
+            },
+        };
+
+        const jwtToken = jwt.sign(data, secret);
+
+        res.status(200).send({ user, jwtToken });
 
     } catch (error) {
         return res.status(500).send({ error: 'Internal Server Error' });
@@ -86,7 +97,7 @@ router.post('/verifyTheUser', [
 router.get('/users', findToken, async (req, res) => {
     try {
         const users = await User.find({});
-        res.status(200).send({users});
+        res.status(200).send({ users });
     } catch (error) {
         return res.status(500).send({ error: 'Internal Server Error' });
     }
@@ -100,7 +111,7 @@ router.get('/usersDetails', findToken, async (req, res) => {
             return res.status(401).send({ error: 'Unauthorized' });
         }
         const user = await User.findById(userId);
-        res.status(200).send({user});
+        res.status(200).send({ user });
     } catch (error) {
         return res.status(500).send({ error: "Internal Server Error" });
     }
@@ -116,23 +127,23 @@ router.get('/users/:id', findToken, async (req, res) => {
                 return res.status(404).send({ message: 'User not found' });
             }
             const user = {
-                name:Isuser.name,
-                email:Isuser.email,
-                phone:Isuser.phone,
-                address:Isuser.address,
-                pincode:Isuser.pincode,
-                state:Isuser.state,
-                city:Isuser.city,
+                name: Isuser.name,
+                email: Isuser.email,
+                phone: Isuser.phone,
+                address: Isuser.address,
+                pincode: Isuser.pincode,
+                state: Isuser.state,
+                city: Isuser.city,
             }
-            return res.status(200).send({user});
+            return res.status(200).send({ user });
         }
 
         const user = await User.findById(userId);
         if (!user) {
             return res.status(404).send({ message: 'User not found' });
         }
-        res.status(200).send({user});
-        
+        res.status(200).send({ user });
+
     } catch (error) {
         return res.status(500).send({ error: 'Internal Server Error' });
     }
@@ -162,7 +173,7 @@ router.put('/users/:id', findToken, async (req, res) => {
         if (!user) {
             return res.status(404).send({ message: 'User not found' });
         }
-        res.status(200).send({user});
+        res.status(200).send({ user });
     } catch (error) {
         return res.status(500).send({ error: 'Internal Server Error' });
     }

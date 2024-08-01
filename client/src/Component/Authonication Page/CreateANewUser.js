@@ -37,7 +37,7 @@ const CreateANewUser = () => {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        dispatch(action.CreateANewUser(formData.pan,formData.name,formData.email,formData.phone,formData.address,formData.address,stateAndCity.state,stateAndCity.city));
+        dispatch(action.CreateANewUser(formData.pan,formData.name,formData.email,formData.phone,formData.address,formData.pincode,stateAndCity.state,stateAndCity.city));
         if(regestrationState){
             localStorage.setItem('AuthToken',regestrationState);
             setAuth(regestrationState);
@@ -90,7 +90,7 @@ const CreateANewUser = () => {
                             <Form.Group controlId="formPhone">
                                 <Form.Label>Phone</Form.Label>
                                 <Form.Control
-                                    type="text"
+                                    type="number"
                                     name="phone"
                                     value={formData.phone}
                                     onChange={handleChange}
@@ -112,7 +112,7 @@ const CreateANewUser = () => {
                             <Form.Group controlId="formPincode">
                                 <Form.Label>Pincode</Form.Label>
                                 <Form.Control
-                                    type="text"
+                                    type="number"
                                     name="pincode"
                                     value={formData.pincode}
                                     onChange={handleChange}
